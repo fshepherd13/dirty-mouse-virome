@@ -1,0 +1,82 @@
+#Snakefile for calling variants in trimmed reads against a consensus sequence generated in directory ../consensus_calling 
+
+#Original ivar pipeline written by Karthik Gangavarapu, 2018 (https://github.com/andersen-lab/ivar)
+#Adapted for the dirty mouse virome project by Frances Shepherd, 2020-2021
+
+#Required format of raw read file names for this pipeline to work:
+#Unique-sample-identifier_Replicate_read-direction
+#Example: M1-AJ04-SI-kobu-3dpol_A_R1.fastq.gz
+
+#User input required:
+#in_dir <- path for *trimmed* fastq files
+#out_dir <- path for output files
+#ref <- path for Genbank reference sequence the trimmed reads are mapped against to create a consensus sequence
+#index <- path for index files of Genbank reference
+#ADAPTERS <- path for Illumina adapter sequences, used for trimming raw reads
+
+
+in_dir = "../consensus_calling/trimmed_reads"
+out_dir = "out"
+ref="../consensus_calling/out/consensus/M10-AJ04-SI-astro-capsid-E2.fa"
+gff="../consensus_calling/out/index/M10-AJ04-SI-astro-capsid-E2.gff"
+index="../consensus_calling/out/index/M10-AJ04-SI-astro-capsid-E2"
+
+lst = listdir(in_dir)
+files = [f for f in lst  if isfile(join(in_dir, f)) and "_trimmed.fastq" in f]
+files.sort()
+
+SAMPLES = []
+for i in files:
+    SAMPLES.append(i.split("_")[0])
+SAMPLES = list(set(SAMPLES))
+
+REPS=["A","B"]
+NUM=[1,2]
+
+
+rule all:
+    input:
+        #Files of viral variants
+        expand("{out_dir}/variants/{sample}.filtered.tsv", out_dir = out_dir, sample = SAMPLES)
+
+
+
+#Compare the variants that are called between each of the replicates and filter the ones that only occur in one replicate to avoid false positive variant calling.
+rule filter_variants:
+    input:
+        expand("{out_dir}/variants/{{sample}}_{rep}.tsv", out_dir=out_dir, rep=REPS)
+    output:
+        "{out_dir}/variants/{sample}.filtered.tsv"
+    shell:
+        """
+        mkdir -p $(dirname {output})/
+        ivar filtervariants -p {output} {input}
+        """
+
+#Call variants 
+rule call_variants:
+    input:
+        "{out_dir}/aligned/{sample}_{rep}.sorted.bam",
+        "{ref}".format(ref=ref),
+        "{gff}".format(gff=gff)
+    output:
+        "{out_dir}/variants/{sample}_{rep}.tsv"
+    shell:
+        """
+        samtools mpileup -A -B -d 0 --reference {input[1]} -Q 0 -F 0 {input[0]} | ivar variants -p {output} -t 0.03 -g {input[2]} -r {input[1]}
+        """
+
+#Align reads to the pet store consensus sequence
+rule align_reads:
+    input:
+        expand("{in_dir}/{{sample}}_{{rep}}_R{num}_trimmed.fastq", num=[1,2], in_dir = in_dir)
+    params:
+        index="{i}".format(i = index)
+    output:
+        "{out_dir}/aligned/{sample}_{rep}.sorted.bam"
+    shell:
+        """
+        mkdir -p $(dirname {output})/
+        bwa mem {params.index} {input[0]} {input[1]} | samtools view -F 4 -Sb | samtools sort -T {wildcards.sample}_{wildcards.rep}_align -o {output}
+        samtools index {output}
+        """
