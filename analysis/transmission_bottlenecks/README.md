@@ -45,3 +45,5 @@ $ snakemake --cores 2
 ```
 python3 ./combine_variant_files.py metadata.csv ./out/variants/ combined_filtered_variants.tsv
 ```
+
+#### The combined file is used to graph variant frequencies in the petstore reservoir and the host. See accompanying Rmarkdown script that generates a graph of the bottleneck
