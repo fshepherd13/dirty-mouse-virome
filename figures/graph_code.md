@@ -1,22 +1,17 @@
----
-title: "Dirty mouse virome-code for transmission bottleneck and de novo variant graphs"
-author: "Frances Shepherd"
-date: "1/27/2021"
-output: rmarkdown::github_document
----
+Dirty mouse virome-code for manuscript plots
+================
+Frances Shepherd
+1/27/2021
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message = FALSE)
-```
 ### Astrovirus transmission analysis
-```{r astrovirus_transmission_analysis}
-#Import data: a csv file containing the average frequencies of astrovirus rdrdp amplicon variants detected by the ivar pipeline. These frequencies are determined by comparing a pet store mouse to itself (i.e. an "intra-pet store mouse variant"), and each of the specific pathogen free (SPF) mouse genotypes (i.e. B6, IFNAR knockout, IFNLR knockout, or IFNLAR knocout) to the petstore mice. 
+
+``` r
 library(ggplot2)
 library(RColorBrewer)
 library(dplyr)
 library(stringr)
 
-
+#Import data
 dat <- read.csv("../final_data/astro_transmission_data.csv", header=TRUE, stringsAsFactors = FALSE) %>% #<- user set filename
   mutate(mouse_genotype = as.factor(mouse_genotype)) %>%
   subset(., PASS_repA == "TRUE" & PASS_repB == "TRUE" & exclude_from_final != "Y") %>% #Filter out observations with non-significant Fisher's exact tests, and those that fall within primer binding sites/outside of assembled consensus region.
@@ -72,8 +67,12 @@ ggplot(merged, aes(y=average_variant_freq_spf, x=average_variant_freq_petstore))
         aspect.ratio = 1)
 ```
 
-###Kobuvirus transmission bottlenecks
-```{r kobu_transmission_bottlenecks}
+![](graph_code_files/figure-markdown_github/astrovirus_transmission_analysis-1.png)
+
+### Kobuvirus transmission bottlenecks
+
+``` r
+#Read in data
 dat <- read.csv("../final_data/kobu_transmission_data.csv", header=TRUE, stringsAsFactors = FALSE) %>% #<- user set filename
   mutate(mouse_genotype = as.factor(mouse_genotype)) %>%
   subset(., PASS_repA == "TRUE" & PASS_repB == "TRUE" & exclude_from_final != "Y") %>% #Filter out observations with non-significant Fisher's exact tests, and those that fall within primer binding sites/outside of assembled consensus region.
@@ -129,8 +128,12 @@ ggplot(merged, aes(y=average_variant_freq_spf, x=average_variant_freq_petstore))
         aspect.ratio = 1)
 ```
 
+![](graph_code_files/figure-markdown_github/kobu_transmission_bottlenecks-1.png)
+
 ### Astrovirus dissemination bottlenecks
-```{r astro_dissemination_bottlenecks}
+
+``` r
+#Read in data
 dat <- read.csv("../final_data/astro_dissemination_data.csv", header = T, stringsAsFactors = FALSE) %>%
   mutate(mouse_genotype = as.factor(mouse_genotype)) %>%
   subset(., PASS_repA == "TRUE" & PASS_repB == "TRUE" & exclude_from_final != "Y") %>% #Filter out observations with non-significant Fisher's exact tests, and those that fall within primer binding sites/outside of assembled consensus region.
@@ -188,8 +191,12 @@ ggplot(merged, aes(y=average_variant_freq_liv, x=average_variant_freq_si))+
         aspect.ratio = 1)
 ```
 
+![](graph_code_files/figure-markdown_github/astro_dissemination_bottlenecks-1.png)
+
 ### Rat astrovirus de novo variants graph
-```{r}
+
+``` r
+#Read in data
 dat <- read.csv("../final_data/combined_rat_variants.csv", header = T, stringsAsFactors = FALSE) %>%
   subset(., PASS_repA == "TRUE" & PASS_repB == "TRUE" & exclude_from_final == "N") %>% #Filter out observations with non-significant Fisher's exact tests, and those that fall within primer binding sites/outside of assembled consensus region.
     .[,c("experiment", "primer_set", "mouse_ivar_number", "cage", "mouse_genotype", "REGION", "POS", "REF", "ALT", "REF_CODON", "REF_AA", "ALT_CODON", "ALT_AA", "average_variant_freq")]
@@ -242,7 +249,7 @@ ggplot(data = denovo.variants, aes(x=POS, y = b6_freq, fill = change, color = ch
   scale_fill_manual(values = c("#CC0000", "#0033CC"), labels=c("Nonsynonymous", "Synonymous"))+
   scale_x_continuous(limits = c(3300, 4100), 
                      breaks = seq(3300, 4100, 200),
-                     name="Position") +
+                     name="Astrovirus genome position") +
   scale_y_continuous(limits = c(-0.25,0.25), name="De novo variant frequency") +
   ggtitle("Rat astrovirus rdrp amplicon de novo variants") +
   theme(panel.grid = element_blank(),
@@ -253,3 +260,4 @@ ggplot(data = denovo.variants, aes(x=POS, y = b6_freq, fill = change, color = ch
         axis.text.x = element_text(angle = 60, hjust=1))
 ```
 
+![](graph_code_files/figure-markdown_github/rat_astro_de_novo_variants-1.png)
