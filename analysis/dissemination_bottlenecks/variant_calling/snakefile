@@ -1,0 +1,107 @@
+#Snakemake file to call viral variants by comparing reads from liver amplicon sequencing to the consensus sequences generated in the small intestine reads.
+#Snakefile for calling a consensus sequence using small intestine amplicon reads from
+#Original ivar pipeline written by Karthik Gangavarapu, 2018 (https://github.com/andersen-lab/ivar)
+#Adapted for the dirty mouse virome project by Frances Shepherd, 2020-2021
+
+################################################################################
+#The User must input the following information:
+#in_dir <- location directory where input **trimmed** fastq files are located
+#out_dir <- name of directory to put output files
+#CONSENSUS_SUFFIX <- Consensus sequences are named 'M1-AK04-SI-astro-rdrp-D2', the program needs to know what the suffix is that indicates this data refers to the SI reads. I.e. below I indicate the consensus suffix is "SI-astro-capsid"
+#ref_dir <- name of parent directory where the reference/index/gff files are located (each file type will be in its own subdirectory, example is as follows for ref directory ./SI_consensus_seqs:)
+#.
+#+-- _SI_consensus_seqs/
+#    +-- _consensus/
+#        +-- M1-SI-astro-capsid.fa
+#        +-- M3-SI-astro-capsid.fa
+#        +-- (etc.)
+#    +-- _gff/
+#        +-- M1-SI-astro-capsid.gff
+#        +-- M3-SI-astro-capsid.gff
+#        +-- (etc.)
+#    +-- _index/
+#        +-- M1-SI-astro-capsid.amb
+#        +-- M1-SI-astro-capsid.ann
+#        +-- M1-SI-astro-capsid.bwt
+#        +-- M1-SI-astro-capsid.pac
+#        +-- M1-SI-astro-capsid.sa
+#        +-- M3-SI-astro-capsid.amb
+#        +-- M3-SI-astro-capsid.ann
+#        +-- M3-SI-astro-capsid.bwt
+#        +-- M3-SI-astro-capsid.pac
+#        +-- M3-SI-astro-capsid.sa
+#        +-- (etc.)
+################################################################################
+################################################################################
+
+from os import listdir
+from os.path import isfile, join
+
+in_dir = "trimmed_reads"
+out_dir = "out"
+ref_dir = "../si_consensus_generation/out"
+CONSENSUS_SUFFIX = "AK04-SI-astro-rdrp-D2"
+
+
+REPS=["A","B"] #Technical replicates from the same sample are indicated with "A" and "B"
+NUM=[1,2] #Forward and reverse reads from the same replicate are indicated with 1 and 2 (for R1 and R2)
+
+#Creates a list of the fastq.gz files in the raw_reads directory
+lst = listdir(in_dir) 
+files = [f for f in lst  if isfile(join(in_dir, f)) and ".fastq.gz" in f]
+files.sort()
+
+#Define the sample ID's for the raw read files. 
+#The fastq.gz files should be named per the following: M1_AK04-LIV-astro-capsid-E2_B_R2.fastq.gz
+SAMPLES = [] #Initiate empty list that will contain the list of mouse numbers (i.e. M1, M2, etc.)
+
+for i in files: #Loop through the list of fastq.gz files 
+    SAMPLES.append(i.split("_")[0]) #Splits the files at the "_" character, extracts the first portion of that which contains the sample name (i.e. "M1")
+SAMPLES = list(set(SAMPLES)) #Populates the empty list with those values
+
+SAMPLES_suffix = files[1].split("_")[1] #Take the remaining text that describes what the sample is, i.e. "AK04-LIV-astro-capsid-E2"
+
+
+rule all:
+    input:
+        #Files of viral variants
+        expand("{out_dir}/variants/{{sample}}.filtered.tsv", out_dir = out_dir)
+
+#Compare the variants that are called between each of the replicates and filter the ones that only occur in one replicate to avoid false positive variant calling.
+rule filter_variants:
+    input:
+        expand("{out_dir}/variants/{{sample}}_{rep}.tsv", out_dir=out_dir, rep=REPS)
+    output:
+        expand("{out_dir}/variants/{{sample}}.filtered.tsv", out_dir=out_dir)
+    shell:
+        """
+        mkdir -p $(dirname {output})/
+        ivar filtervariants -p {output} {input}
+        """
+
+rule call_variants:
+    input:
+        bam = "{out_dir}/aligned/{sample}_{sample_suffix}_{rep}.sorted.bam",
+        ref = expand("{ref_dir}/consensus/{{sample}}_{consensus_suffix}.fa", ref_dir=ref_dir, consensus_suffix=CONSENSUS_SUFFIX),
+        gff = expand("{ref_dir}/gff/{{sample}}_{consensus_suffix}.gff", ref_dir=ref_dir, consensus_suffix=CONSENSUS_SUFFIX)
+    output:
+        "{out_dir}/variants/{sample}_{sample_suffix}_{rep}.tsv"
+    shell:
+        """
+        samtools mpileup -A -d 0 --reference {input.ref} -Q 0 -F 0 {input.bam} | ivar variants -p {output} -t 0.03 -g {input.gff} -r {input.ref}
+        """
+
+#Align reads to the small intestine consensus sequence
+rule align_reads:
+    input:
+        reads = expand("trimmed_reads/{{sample}}_{{sample_suffix}}_{{rep}}_R{num}_trimmed.fastq", num=[1,2])
+    params:
+        index = expand("{ref_dir}/index/{{sample}}_{consensus_suffix}", ref_dir = ref_dir, consensus_suffix=CONSENSUS_SUFFIX)
+    output:
+        expand("{out_dir}/aligned/{{sample}}_{{sample_suffix}}_{{rep}}.sorted.bam", out_dir = out_dir)
+    shell:
+        """
+        mkdir -p $(dirname {output}/)
+        bwa mem {params.index} {input.reads[0]} {input.reads[1]} | samtools view -F 4 -Sb | samtools sort -T {wildcards.sample}_{wildcards.rep}_align -o {output}
+        samtools index {output}
+        """

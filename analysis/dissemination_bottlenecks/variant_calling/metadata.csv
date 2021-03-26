@@ -1,0 +1,13 @@
+filename,experiment,primer_set,mouse_ivar_number,cage,mouse_genotype
+M1_AK04-LIV-astro-rdrp-D2.filtered.tsv,AK04_liv,astro_D_F2,M1,1,b6_cohoused
+M1_AK04-SI-astro-rdrp-D2.filtered.tsv,AK04_si,astro_D_F2,M1,1,b6_cohoused
+M3_AK04-LIV-astro-rdrp-D2.filtered.tsv,AK04_liv,astro_D_F2,M3,1,IFNAR_ko_cohoused
+M3_AK04-SI-astro-rdrp-D2.filtered.tsv,AK04_si,astro_D_F2,M3,1,IFNAR_ko_cohoused
+M4_AK04-LIV-astro-rdrp-D2.filtered.tsv,AK04_liv,astro_D_F2,M4,1,IFNLR_ko_cohoused
+M4_AK04-SI-astro-rdrp-D2.filtered.tsv,AK04_si,astro_D_F2,M4,1,IFNLR_ko_cohoused
+M5_AK04-LIV-astro-rdrp-D2.filtered.tsv,AK04_liv,astro_D_F2,M5,1,IFNLAR_ko_cohoused
+M5_AK04-SI-astro-rdrp-D2.filtered.tsv,AK04_si,astro_D_F2,M5,1,IFNLAR_ko_cohoused
+M10_AK04-LIV-astro-rdrp-D2.filtered.tsv,AK04_liv,astro_D_F2,M10,2,IFNAR_ko_cohoused
+M10_AK04-SI-astro-rdrp-D2.filtered.tsv,AK04_si,astro_D_F2,M10,2,IFNAR_ko_cohoused
+M12_AK04-LIV-astro-rdrp-D2.filtered.tsv,AK04_liv,astro_D_F2,M12,2,IFNLAR_ko_cohoused
+M12_AK04-SI-astro-rdrp-D2.filtered.tsv,AK04_si,astro_D_F2,M12,2,IFNLAR_ko_cohoused
