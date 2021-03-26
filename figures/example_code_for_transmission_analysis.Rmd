@@ -2,7 +2,7 @@
 title: "Dirty mouse virome-code for transmission bottleneck and de novo variant graphs"
 author: "Frances Shepherd"
 date: "1/27/2021"
-output: html_document
+output: rmarkdown::github_document
 ---
 
 ```{r setup, include=FALSE}
