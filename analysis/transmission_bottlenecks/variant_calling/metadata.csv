@@ -1,4 +1,0 @@
-filename,experiment,primer_set,mouse_ivar_number,cage,pet_store_mouse_ivar_number,pet_store,mouse_genotype
-M1-SI-astro-capsid-E2.filtered.tsv,AK02,astro_E_F2,M1,1,M4,C,B6_cohoused
-M3-SI-astro-capsid-E2.filtered.tsv,AK02,astro_E_F2,M3,1,M4,C,IFNAR_ko_cohoused
-M4-SI-astro-capsid-E2.filtered.tsv,AK02,astro_E_F2,M4,1,M4,C,petstore_C
