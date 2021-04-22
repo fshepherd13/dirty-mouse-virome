@@ -12,7 +12,9 @@ $ conda activate dirty_mouse
 The pipelines are based off of code originally written by Karthik Gangavarapu in 2018 (https://github.com/andersen-lab/ivar). See the Andersen Lab's github page for further details on ivar, which is code written to call variants in amplicon sequencing reads. Snakemake is used to run the pipelines. For details on how to use snakemake, see https://snakemake.readthedocs.io/en/stable/.
 
 ### Further details
-The `analysis` folder contains two types of pipelines, one for calling variants as viruses transmit from a reservoir hosts(i.e. pet store mice) to recipient hosts (i.e. SPF lab mice), called `transmission_analysis`. The second directory, named `dissemination_analysis` is used for calling variants as viruses disseminate from small intestine to the liver. They work slightly differently, and there are readme files within each directory to explain how to run the pipeline. 
+The `analysis` folder contains three directories. The `dissemination_analysis` and `transmission_analysis` directories contain the pipelines used for amplicon sequence analysis and variant calling. `transmission_analysis` is for calling variants as viruses transmit from a reservoir hosts(i.e. pet store mice) to recipient hosts (i.e. SPF lab mice). `dissemination_analysis` is used for calling variants as viruses disseminate from small intestine to the liver. They work slightly differently, and there are readme files within each directory to explain how to run the pipeline. 
+
+The third directory, `CodonUsage` contains R code for analyzing dinucleotide composition, codon usage and codon pair bias of the novel reepicheep virus. The R libraries necessary for re-running this code are specified within the R code file.
 
 ### Raw data availability
 Raw sequencing data is deposited in NCBI under BioProject ID: 
